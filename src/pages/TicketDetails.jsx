@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { getTicket, analyzeTicket } from '../services/api';
+import { getTicket, analyzeTicket, suggestSolution, getSimilarTickets } from '../services/api';
 
 const TicketDetails = () => {
     const { ticketId } = useParams();
@@ -8,6 +8,13 @@ const TicketDetails = () => {
     const [ticket, setTicket] = useState(null);
     const [loading, setLoading] = useState(true);
     const [analyzing, setAnalyzing] = useState(false);
+
+    // New state for Suggestions and Similar Tickets
+    const [suggestion, setSuggestion] = useState(null);
+    const [loadingSuggestion, setLoadingSuggestion] = useState(false);
+
+    const [similarTickets, setSimilarTickets] = useState(null);
+    const [loadingSimilar, setLoadingSimilar] = useState(false);
 
     const onAnalyzeClick = async () => {
         try {
@@ -33,6 +40,32 @@ const TicketDetails = () => {
             alert("Failed to analyze ticket");
         } finally {
             setAnalyzing(false);
+        }
+    };
+
+    const onGenerateSolutionClick = async () => {
+        try {
+            setLoadingSuggestion(true);
+            const data = await suggestSolution(ticket.id);
+            setSuggestion(data);
+        } catch (error) {
+            console.error("Failed to get suggestion", error);
+            alert("Failed to get AI suggestion");
+        } finally {
+            setLoadingSuggestion(false);
+        }
+    };
+
+    const onFindSimilarClick = async () => {
+        try {
+            setLoadingSimilar(true);
+            const data = await getSimilarTickets(ticket.id);
+            setSimilarTickets(data);
+        } catch (error) {
+            console.error("Failed to get similar tickets", error);
+            alert("Failed to find similar tickets");
+        } finally {
+            setLoadingSimilar(false);
         }
     };
 
@@ -135,67 +168,6 @@ const TicketDetails = () => {
                             </div>
                         </div>
 
-                        {/* AI Analysis Section */}
-                        <div className="bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-5 rounded-xl border border-blue-100 dark:border-blue-800 shadow-sm relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-4 opacity-5">
-                                <span className="text-6xl">✨</span>
-                            </div>
-
-                            <div className="flex justify-between items-start mb-4 relative z-10">
-                                <h3 className="text-sm font-bold text-blue-800 dark:text-blue-300 uppercase tracking-wider flex items-center gap-2">
-                                    <span>✨ AI Analysis</span>
-                                </h3>
-                                <button
-                                    onClick={onAnalyzeClick}
-                                    disabled={analyzing}
-                                    className="text-xs bg-white/50 hover:bg-white/80 dark:bg-black/20 dark:hover:bg-black/40 text-blue-700 dark:text-blue-200 px-3 py-1.5 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center gap-2 border border-blue-200 dark:border-blue-800 backdrop-blur-sm"
-                                >
-                                    {analyzing ? (
-                                        <>
-                                            <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                                            Analyzing...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span className="text-lg">⚡</span> Analyze Ticket
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
-                                <div className="bg-white/60 dark:bg-gray-800/60 p-3 rounded-lg backdrop-blur-sm border border-white/50 dark:border-gray-700/50">
-                                    <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Suggested Category</h4>
-                                    <div className="text-sm font-medium dark:text-white flex items-center gap-2">
-                                        {ticket.auto_category ? (
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                                                {ticket.auto_category}
-                                            </span>
-                                        ) : (
-                                            <span className="text-gray-400 italic text-xs">Not analyzed yet</span>
-                                        )}
-                                    </div>
-                                </div>
-                                <div className="bg-white/60 dark:bg-gray-800/60 p-3 rounded-lg backdrop-blur-sm border border-white/50 dark:border-gray-700/50">
-                                    <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Detected Tags</h4>
-                                    <div className="text-sm font-medium dark:text-white">
-                                        {ticket.auto_tags && ticket.auto_tags.length > 0 ? (
-                                            <div className="flex flex-wrap gap-2">
-                                                {(Array.isArray(ticket.auto_tags) ? ticket.auto_tags : ticket.auto_tags.split(',')).map((tag, i) => (
-                                                    <span key={i} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
-                                                        #{tag.trim()}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <span className="text-gray-400 italic text-xs">Not analyzed yet</span>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-
                     </div>
 
                     {/* Right Column: People & Dates */}
@@ -250,6 +222,207 @@ const TicketDetails = () => {
                         </div>
                     </div>
 
+                </div>
+            </div>
+
+            {/* AI Analysis Dashboard Card */}
+            <div className="mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-6 border-b border-blue-100 dark:border-blue-800 flex justify-between items-center relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                        <span className="text-6xl">✨</span>
+                    </div>
+
+                    <h2 className="text-lg font-bold text-blue-900 dark:text-blue-100 flex items-center gap-2 relative z-10">
+                        <span>✨ AI Analysis Dashboard</span>
+                    </h2>
+
+                    <button
+                        onClick={onAnalyzeClick}
+                        disabled={analyzing}
+                        className="relative z-10 text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm"
+                    >
+                        {analyzing ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                Analyzing...
+                            </>
+                        ) : (
+                            <>
+                                <span>⚡</span> Analyze Ticket
+                            </>
+                        )}
+                    </button>
+                </div>
+
+                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Category & Tags */}
+                    <div className="space-y-6">
+                        <div className="bg-gray-50 dark:bg-gray-900/50 p-5 rounded-xl border border-gray-100 dark:border-gray-800 h-full">
+                            <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                <span className="text-blue-500">🏷️</span> Classification
+                            </h3>
+
+                            <div className="space-y-6">
+                                <div>
+                                    <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">Suggested Category</h4>
+                                    <div className="text-sm font-medium dark:text-white">
+                                        {ticket.auto_category ? (
+                                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                                {ticket.auto_category}
+                                            </span>
+                                        ) : (
+                                            <span className="text-gray-400 italic">Not analyzed yet</span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">Detected Tags</h4>
+                                    <div className="text-sm font-medium dark:text-white">
+                                        {ticket.auto_tags && ticket.auto_tags.length > 0 ? (
+                                            <div className="flex flex-wrap gap-2">
+                                                {(Array.isArray(ticket.auto_tags) ? ticket.auto_tags : ticket.auto_tags.split(',')).map((tag, i) => (
+                                                    <span key={i} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
+                                                        #{tag.trim()}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <span className="text-gray-400 italic">Not analyzed yet</span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Similar Tickets */}
+                    <div className="bg-gray-50 dark:bg-gray-900/50 p-5 rounded-xl border border-gray-100 dark:border-gray-800 flex flex-col h-full">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                                <span className="text-teal-500">🔄</span> Similar Tickets
+                            </h3>
+                            {ticket.auto_category && !similarTickets && (
+                                <button
+                                    onClick={onFindSimilarClick}
+                                    disabled={loadingSimilar}
+                                    className="text-xs text-teal-600 hover:text-teal-700 bg-teal-50 hover:bg-teal-100 px-3 py-1 rounded-lg transition-colors font-medium border border-teal-200"
+                                >
+                                    {loadingSimilar ? 'Searching...' : 'Find Similar'}
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="flex-1">
+                            {!ticket.auto_category ? (
+                                <div className="h-full flex flex-col items-center justify-center text-center p-4 text-gray-400 space-y-2 min-h-[100px]">
+                                    <span className="text-2xl opacity-20">🔒</span>
+                                    <span className="text-xs">Analyze ticket to unlock</span>
+                                </div>
+                            ) : !similarTickets ? (
+                                <div className="h-full flex flex-col items-center justify-center text-gray-400 italic text-sm min-h-[100px]">
+                                    Click 'Find Similar' to search
+                                </div>
+                            ) : (
+                                <div className="space-y-3 animate-in fade-in duration-300">
+                                    {similarTickets.length === 0 ? (
+                                        <p className="text-sm text-gray-500 italic text-center py-4">No similar tickets found.</p>
+                                    ) : (
+                                        similarTickets.map((simTicket) => (
+                                            <div
+                                                key={simTicket.id}
+                                                onClick={() => navigate(`/tickets/${simTicket.id}`)}
+                                                className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-teal-300 dark:hover:border-teal-700 cursor-pointer transition-colors group shadow-sm"
+                                            >
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <span className="text-xs font-bold text-gray-500 group-hover:text-teal-600 transition-colors">{simTicket.issue_key || `ID: ${simTicket.id}`}</span>
+                                                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${simTicket.status === 'Open' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
+                                                        }`}>
+                                                        {simTicket.status}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs font-medium text-gray-800 dark:text-gray-200 line-clamp-1">
+                                                    {simTicket.summary}
+                                                </p>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Suggested Solution - Full Width below */}
+                    <div className="md:col-span-2 bg-gray-50 dark:bg-gray-900/50 p-5 rounded-xl border border-gray-100 dark:border-gray-800 flex flex-col">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                                <span className="text-purple-500">💡</span> Suggested Solution
+                            </h3>
+                            {ticket.auto_category && !suggestion && (
+                                <button
+                                    onClick={onGenerateSolutionClick}
+                                    disabled={loadingSuggestion}
+                                    className="text-xs text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100 px-3 py-1 rounded-lg transition-colors font-medium border border-purple-200"
+                                >
+                                    {loadingSuggestion ? 'Generating...' : 'Generate Ticket Solution'}
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="flex-1">
+                            {!ticket.auto_category ? (
+                                <div className="h-full flex flex-col items-center justify-center text-center p-4 text-gray-400 space-y-2 min-h-[100px]">
+                                    <span className="text-2xl opacity-20">🔒</span>
+                                    <span className="text-xs">Analyze ticket to unlock</span>
+                                </div>
+                            ) : !suggestion ? (
+                                <div className="h-full flex flex-col items-center justify-center text-gray-400 italic text-sm min-h-[100px]">
+                                    Click 'Generate Ticket Solution' to get AI suggestions
+                                </div>
+                            ) : (
+                                <div className="space-y-4 animate-in fade-in duration-300">
+                                    <div className="text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 whitespace-pre-wrap shadow-sm leading-relaxed">
+                                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Analysis Result</h4>
+                                        {suggestion.ai_suggestion?.suggested_solution || "No solution provided."}
+                                    </div>
+
+                                    {suggestion.ai_suggestion?.relevant_links && suggestion.ai_suggestion.relevant_links.length > 0 && (
+                                        <div className="mt-4">
+                                            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Recommended Actions & Docs</h4>
+                                            <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 space-y-1 bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                                                {suggestion.ai_suggestion.relevant_links.map((link, idx) => (
+                                                    <li key={idx}>
+                                                        {link}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+
+                                    {suggestion.relevant_knowledge && suggestion.relevant_knowledge.length > 0 && (
+                                        <div className="mt-4">
+                                            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Relevant Knowledge Base Articles</h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                {suggestion.relevant_knowledge.map((doc, idx) => (
+                                                    <a key={idx} href={doc.article?.url || "#"} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-400 transition-colors group">
+                                                        <span className="text-xl">📄</span>
+                                                        <div>
+                                                            <div className="text-sm font-medium text-blue-600 group-hover:underline line-clamp-1">
+                                                                {doc.article?.title || doc.title || "Untitled Article"}
+                                                            </div>
+                                                            <div className="text-xs text-gray-500 line-clamp-2 mt-0.5">
+                                                                {doc.article?.content ? doc.article.content.substring(0, 80) + "..." : (doc.page_content ? doc.page_content.substring(0, 80) + "..." : "No preview available")}
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -36,7 +36,7 @@ const Tickets = () => {
         { field: 'priority', headerName: 'Priority', sortable: true, filter: true, width: 120 },
         { field: 'assignee', headerName: 'Assignee', sortable: true, filter: true, width: 150 },
         {
-            field: 'created_at', headerName: 'Created At', sortable: true, filter: true, width: 200,
+            field: 'due_date', headerName: 'Due Date', sortable: true, filter: true, width: 200,
             valueFormatter: params => new Date(params.value).toLocaleString()
         }
     ]);

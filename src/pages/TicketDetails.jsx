@@ -1,12 +1,40 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { getTicket } from '../services/api';
+import { getTicket, analyzeTicket } from '../services/api';
 
 const TicketDetails = () => {
     const { ticketId } = useParams();
     const navigate = useNavigate();
     const [ticket, setTicket] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [analyzing, setAnalyzing] = useState(false);
+
+    const onAnalyzeClick = async () => {
+        try {
+            setAnalyzing(true);
+            const updatedTicket = await analyzeTicket(ticket.id || ticket.issue_key); // use appropriate ID
+            // Since backend takes ticket_id (int usually), we should try both or ensure we have the ID.
+            // The getTicket response 'ticket' should have the ID.
+
+            // The backend example provided by user uses `ticket_id` (int). 
+            // Our ticket object from `getTicket` has `id`.
+            // So ticket.id should be correct if it's an integer ID.
+
+            // Wait, the backend code sample:
+            // @tickets_bp.route('/<int:ticket_id>/analyze', methods=['POST'])
+            // def analyze_ticket(ticket_id):
+
+            // So we must pass the INT id. `ticket.id` should be it.
+
+            // If updatedTicket is returned, update state
+            setTicket(updatedTicket);
+        } catch (error) {
+            console.error("Failed to analyze ticket", error);
+            alert("Failed to analyze ticket");
+        } finally {
+            setAnalyzing(false);
+        }
+    };
 
     useEffect(() => {
         const fetchTicket = async () => {
@@ -61,6 +89,9 @@ const TicketDetails = () => {
                             {ticket.summary}
                         </h1>
                     </div>
+
+
+
                 </div>
 
                 {/* Info Grid */}
@@ -71,6 +102,8 @@ const TicketDetails = () => {
                     <div className="lg:col-span-3 space-y-8">
 
 
+
+
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                             <div>
                                 <h4 className="text-xs font-semibold text-gray-500 mb-1">Issue Type</h4>
@@ -79,7 +112,7 @@ const TicketDetails = () => {
                             <div>
                                 <h4 className="text-xs font-semibold text-gray-500 mb-1">Priority</h4>
                                 <div className={`text-sm font-medium ${ticket.priority === 'High' ? 'text-red-600' :
-                                        ticket.priority === 'Medium' ? 'text-yellow-600' : 'text-blue-600'
+                                    ticket.priority === 'Medium' ? 'text-yellow-600' : 'text-blue-600'
                                     }`}>
                                     {ticket.priority}
                                 </div>
@@ -93,16 +126,76 @@ const TicketDetails = () => {
                                 <div className="text-sm font-medium dark:text-white">{ticket.resolution || 'Unresolved'}</div>
                             </div>
                         </div>
-                        
+
                         <div>
-                            
+
                             <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-800 text-gray-700 dark:text-gray-300 prose max-w-none">
                                 <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-2">Description</h3>
                                 {ticket.summary || "No description provided."}
                             </div>
                         </div>
 
-                        
+                        {/* AI Analysis Section */}
+                        <div className="bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-5 rounded-xl border border-blue-100 dark:border-blue-800 shadow-sm relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-4 opacity-5">
+                                <span className="text-6xl">✨</span>
+                            </div>
+
+                            <div className="flex justify-between items-start mb-4 relative z-10">
+                                <h3 className="text-sm font-bold text-blue-800 dark:text-blue-300 uppercase tracking-wider flex items-center gap-2">
+                                    <span>✨ AI Analysis</span>
+                                </h3>
+                                <button
+                                    onClick={onAnalyzeClick}
+                                    disabled={analyzing}
+                                    className="text-xs bg-white/50 hover:bg-white/80 dark:bg-black/20 dark:hover:bg-black/40 text-blue-700 dark:text-blue-200 px-3 py-1.5 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center gap-2 border border-blue-200 dark:border-blue-800 backdrop-blur-sm"
+                                >
+                                    {analyzing ? (
+                                        <>
+                                            <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                                            Analyzing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span className="text-lg">⚡</span> Analyze Ticket
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+                                <div className="bg-white/60 dark:bg-gray-800/60 p-3 rounded-lg backdrop-blur-sm border border-white/50 dark:border-gray-700/50">
+                                    <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Suggested Category</h4>
+                                    <div className="text-sm font-medium dark:text-white flex items-center gap-2">
+                                        {ticket.auto_category ? (
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                                {ticket.auto_category}
+                                            </span>
+                                        ) : (
+                                            <span className="text-gray-400 italic text-xs">Not analyzed yet</span>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="bg-white/60 dark:bg-gray-800/60 p-3 rounded-lg backdrop-blur-sm border border-white/50 dark:border-gray-700/50">
+                                    <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Detected Tags</h4>
+                                    <div className="text-sm font-medium dark:text-white">
+                                        {ticket.auto_tags && ticket.auto_tags.length > 0 ? (
+                                            <div className="flex flex-wrap gap-2">
+                                                {(Array.isArray(ticket.auto_tags) ? ticket.auto_tags : ticket.auto_tags.split(',')).map((tag, i) => (
+                                                    <span key={i} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
+                                                        #{tag.trim()}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <span className="text-gray-400 italic text-xs">Not analyzed yet</span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
                     </div>
 
                     {/* Right Column: People & Dates */}
@@ -134,7 +227,7 @@ const TicketDetails = () => {
                                 </div>
                             </div>
 
-                            
+
                         </div>
 
                         <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-lg border border-gray-100 dark:border-gray-800 space-y-4">
@@ -149,7 +242,7 @@ const TicketDetails = () => {
                                 <div className="text-xs text-gray-500">Updated</div>
                                 <div className="text-sm font-medium dark:text-white">{formatDate(ticket.updated_at)}</div>
                             </div>
-                           
+
                             <div>
                                 <div className="text-xs text-gray-500">Due Date</div>
                                 <div className="text-sm font-medium dark:text-white">{formatDate(ticket.due_date)}</div>

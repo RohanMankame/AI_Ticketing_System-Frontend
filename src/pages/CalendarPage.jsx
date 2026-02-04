@@ -15,6 +15,7 @@ const CalendarPage = () => {
     const [selectedTickets, setSelectedTickets] = useState([]);
     const [date, setDate] = useState(new Date());
     const [view, setView] = useState('month');
+    const routerNavigate = useNavigate();
 
     const navigate = (action) => {
         let newDate = new Date(date);
@@ -38,19 +39,61 @@ const CalendarPage = () => {
                 const data = await getTickets();
                 setTickets(data);
 
+                // Group tickets by date
+                const ticketsByDate = {};
+                data.forEach(ticket => {
+                    const ticketDate = ticket.due_date ? new Date(ticket.due_date) : new Date(ticket.created_at);
+                    const dateStr = moment(ticketDate).format('YYYY-MM-DD');
 
-                const ticketEvents = data.map(ticket => {
-                    const date = ticket.due_date ? new Date(ticket.due_date) : new Date(ticket.created_at);
-                    return {
-                        id: ticket.id || ticket.issue_key,
-                        title: ticket.summary,
-                        start: date,
-                        end: date,
-                        allDay: true,
-                        resource: ticket
-                    };
+                    if (!ticketsByDate[dateStr]) {
+                        ticketsByDate[dateStr] = {
+                            date: ticketDate,
+                            tickets: [],
+                            open: 0,
+                            closed: 0
+                        };
+                    }
+                    ticketsByDate[dateStr].tickets.push(ticket);
+                    if (ticket.status === 'Done') {
+                        ticketsByDate[dateStr].closed++;
+                    } else {
+                        ticketsByDate[dateStr].open++;
+                    }
                 });
-                setEvents(ticketEvents);
+
+                const aggregatedEvents = [];
+                Object.values(ticketsByDate).forEach(group => {
+                    // Push Open tickets event first so it stays on top (usually)
+                    if (group.open > 0) {
+                        aggregatedEvents.push({
+                            id: `${moment(group.date).format('YYYY-MM-DD')}-open`,
+                            title: `${group.open} Open`,
+                            start: group.date,
+                            end: group.date,
+                            allDay: true,
+                            resource: {
+                                tickets: group.tickets.filter(t => t.status !== 'Done'),
+                                type: 'open'
+                            }
+                        });
+                    }
+                    // Push Closed tickets event second
+                    if (group.closed > 0) {
+                        aggregatedEvents.push({
+                            id: `${moment(group.date).format('YYYY-MM-DD')}-closed`,
+                            title: `${group.closed} Closed`,
+                            start: group.date,
+                            end: group.date,
+                            allDay: true,
+                            resource: {
+                                tickets: group.tickets.filter(t => t.status === 'Done'),
+                                type: 'closed'
+                            }
+                        });
+                    }
+                });
+
+                setEvents(aggregatedEvents);
                 updateSelectedTickets(new Date(), data);
             } catch (error) {
                 console.error("Error fetching tickets for calendar:", error);
@@ -69,8 +112,6 @@ const CalendarPage = () => {
         setSelectedTickets(filtered);
     };
 
-    const routerNavigate = useNavigate();
-
     const handleSelectSlot = (slotInfo) => {
         setSelectedDate(slotInfo.start);
         updateSelectedTickets(slotInfo.start, tickets);
@@ -78,11 +119,12 @@ const CalendarPage = () => {
 
     const handleSelectEvent = (event) => {
         setSelectedDate(event.start);
-        updateSelectedTickets(event.start, tickets);
+        // Use tickets from the aggregated event resource
+        setSelectedTickets(event.resource.tickets);
     };
 
-    const handleDoubleClickEvent = (event) => {
-        const ticketId = event.resource.id || event.resource.issue_id || event.resource.issue_key;
+    const handleTicketClick = (ticket) => {
+        const ticketId = ticket.id || ticket.issue_id || ticket.issue_key;
         routerNavigate(`/tickets/${ticketId}`);
     };
 
@@ -107,7 +149,6 @@ const CalendarPage = () => {
                     style={{ height: '100%' }}
                     onSelectSlot={handleSelectSlot}
                     onSelectEvent={handleSelectEvent}
-                    onDoubleClickEvent={handleDoubleClickEvent}
                     selectable
                     views={['month', 'week', 'day']}
                     defaultView="month"
@@ -117,6 +158,13 @@ const CalendarPage = () => {
                     onNavigate={(d) => setDate(d)}
                     className="text-gray-800 dark:text-gray-200"
                     toolbar={false}
+                    eventPropGetter={(event) => ({
+                        style: {
+                            backgroundColor: event.resource.type === 'open' ? '#3b82f6' : '#10b981', // Blue for Open, Green for Closed
+                            fontSize: '0.85em',
+                            marginBottom: '2px'
+                        }
+                    })}
                 />
             </div>
 
@@ -130,7 +178,11 @@ const CalendarPage = () => {
                 ) : (
                     <div className="space-y-4">
                         {selectedTickets.map(ticket => (
-                            <div key={ticket.issue_key} className="p-3 bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow">
+                            <div
+                                key={ticket.issue_key}
+                                onClick={() => handleTicketClick(ticket)}
+                                className="p-3 bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all cursor-pointer hover:border-blue-400"
+                            >
                                 <div className="flex justify-between items-start mb-1">
                                     <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">{ticket.issue_key}</span>
                                     <span className={`text-xs px-2 py-0.5 rounded-full ${ticket.priority === 'High' ? 'bg-red-300 text-red-900' :

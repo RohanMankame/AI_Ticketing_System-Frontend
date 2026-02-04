@@ -67,7 +67,9 @@ const Tickets = () => {
     const navigate = useNavigate();
 
     const onRowDoubleClicked = (params) => {
-        navigate(`/tickets/${params.data.issue_key}`, { state: { ticket: params.data } });
+        // Use ID for navigation
+        const ticketId = params.data.id || params.data.issue_id || params.data.issue_key;
+        navigate(`/tickets/${ticketId}`);
     };
 
     return (

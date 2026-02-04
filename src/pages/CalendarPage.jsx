@@ -82,7 +82,8 @@ const CalendarPage = () => {
     };
 
     const handleDoubleClickEvent = (event) => {
-        routerNavigate(`/tickets/${event.resource.issue_key}`, { state: { ticket: event.resource } });
+        const ticketId = event.resource.id || event.resource.issue_id || event.resource.issue_key;
+        routerNavigate(`/tickets/${ticketId}`);
     };
 
     return (

@@ -15,6 +15,11 @@ export const getTickets = async () => {
   return response.data;
 };
 
+export const getTicket = async (id) => {
+  const response = await api.get(`/tickets/${id}`);
+  return response.data;
+};
+
 
 export const importTickets = async (file) => {
   const formData = new FormData();

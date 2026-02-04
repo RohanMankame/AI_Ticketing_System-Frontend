@@ -1,0 +1,15 @@
+
+/* Hides styling */
+
+.rbc-today,
+.rbc-today > * {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+
+.rbc-day-bg,
+.rbc-date-cell,
+.rbc-day-slot {
+  background: transparent !important;
+}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import { getTickets } from '../services/api';
@@ -16,19 +17,19 @@ const CalendarPage = () => {
     const [view, setView] = useState('month');
 
     const navigate = (action) => {
-    let newDate = new Date(date);
-    if (action === 'TODAY') {
-        newDate = new Date();
-    } else if (action === 'PREV') {
-        if (view === 'month') newDate = moment(date).subtract(1, 'month').toDate();
-        else if (view === 'week') newDate = moment(date).subtract(1, 'week').toDate();
-        else newDate = moment(date).subtract(1, 'day').toDate();
-    } else if (action === 'NEXT') {
-        if (view === 'month') newDate = moment(date).add(1, 'month').toDate();
-        else if (view === 'week') newDate = moment(date).add(1, 'week').toDate();
-        else newDate = moment(date).add(1, 'day').toDate();
-    }
-    setDate(newDate);
+        let newDate = new Date(date);
+        if (action === 'TODAY') {
+            newDate = new Date();
+        } else if (action === 'PREV') {
+            if (view === 'month') newDate = moment(date).subtract(1, 'month').toDate();
+            else if (view === 'week') newDate = moment(date).subtract(1, 'week').toDate();
+            else newDate = moment(date).subtract(1, 'day').toDate();
+        } else if (action === 'NEXT') {
+            if (view === 'month') newDate = moment(date).add(1, 'month').toDate();
+            else if (view === 'week') newDate = moment(date).add(1, 'week').toDate();
+            else newDate = moment(date).add(1, 'day').toDate();
+        }
+        setDate(newDate);
     };
 
     useEffect(() => {
@@ -37,7 +38,7 @@ const CalendarPage = () => {
                 const data = await getTickets();
                 setTickets(data);
 
-               
+
                 const ticketEvents = data.map(ticket => {
                     const date = ticket.due_date ? new Date(ticket.due_date) : new Date(ticket.created_at);
                     return {
@@ -68,6 +69,8 @@ const CalendarPage = () => {
         setSelectedTickets(filtered);
     };
 
+    const routerNavigate = useNavigate();
+
     const handleSelectSlot = (slotInfo) => {
         setSelectedDate(slotInfo.start);
         updateSelectedTickets(slotInfo.start, tickets);
@@ -78,16 +81,20 @@ const CalendarPage = () => {
         updateSelectedTickets(event.start, tickets);
     };
 
+    const handleDoubleClickEvent = (event) => {
+        routerNavigate(`/tickets/${event.resource.issue_key}`, { state: { ticket: event.resource } });
+    };
+
     return (
         <div className="h-full flex flex-col md:flex-row gap-6">
             <div className="flex-1 bg-white dark:bg-gray-800 p-4 rounded-lg shadow" style={{ minHeight: '600px', display: 'flex', flexDirection: 'column' }}>
                 <div className="flex items-center justify-between mb-3">
-                    
+
                     <div className="text-m font-medium ">{moment(date).format(view === 'month' ? 'MMMM YYYY' : 'MMM D, YYYY')}</div>
                     <div className="flex gap-2">
-                    <button className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded" onClick={() => navigate('PREV')}> ← </button>
-                    <button className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded" onClick={() => navigate('TODAY')}>Current</button>
-                    <button className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded" onClick={() => navigate('NEXT')}> → </button>
+                        <button className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded" onClick={() => navigate('PREV')}> ← </button>
+                        <button className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded" onClick={() => navigate('TODAY')}>Current</button>
+                        <button className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded" onClick={() => navigate('NEXT')}> → </button>
                     </div>
                 </div>
 
@@ -99,6 +106,7 @@ const CalendarPage = () => {
                     style={{ height: '100%' }}
                     onSelectSlot={handleSelectSlot}
                     onSelectEvent={handleSelectEvent}
+                    onDoubleClickEvent={handleDoubleClickEvent}
                     selectable
                     views={['month', 'week', 'day']}
                     defaultView="month"
@@ -109,7 +117,7 @@ const CalendarPage = () => {
                     className="text-gray-800 dark:text-gray-200"
                     toolbar={false}
                 />
-                </div>
+            </div>
 
             <div className="w-full md:w-80 bg-white dark:bg-gray-800 p-6 rounded-lg shadow overflow-y-auto ">
                 <h3 className="text-xl font-bold mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
@@ -125,8 +133,8 @@ const CalendarPage = () => {
                                 <div className="flex justify-between items-start mb-1">
                                     <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">{ticket.issue_key}</span>
                                     <span className={`text-xs px-2 py-0.5 rounded-full ${ticket.priority === 'High' ? 'bg-red-300 text-red-900' :
-                                            ticket.priority === 'Medium' ? 'bg-yellow-300 text-yellow-900' :
-                                                'bg-green-300 text-green-900'
+                                        ticket.priority === 'Medium' ? 'bg-yellow-300 text-yellow-900' :
+                                            'bg-green-300 text-green-900'
                                         }`}>
                                         {ticket.priority || 'Normal'}
                                     </span>

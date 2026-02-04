@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AgGridReact } from 'ag-grid-react';
 import { getTickets } from '../services/api';
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
@@ -12,7 +13,7 @@ import 'ag-grid-community/styles/ag-theme-quartz.css';
 
 
 const myTheme = themeQuartz
-	.withParams({
+    .withParams({
         backgroundColor: "#1f2836",
         browserColorScheme: "dark",
         chromeBackgroundColor: {
@@ -28,7 +29,7 @@ const Tickets = () => {
     const [tickets, setTickets] = useState([]);
     const [loading, setLoading] = useState(true);
 
-  
+
     const [colDefs] = useState([
         { field: 'issue_key', headerName: 'Issue Key', sortable: true, filter: true, width: 120 },
         { field: 'summary', headerName: 'Summary', sortable: true, filter: true, flex: 1 },
@@ -56,12 +57,18 @@ const Tickets = () => {
         fetchTickets();
     }, []);
 
- 
+
     const defaultColDef = useMemo(() => ({
         sortable: true,
         filter: true,
         resizable: true,
     }), []);
+
+    const navigate = useNavigate();
+
+    const onRowDoubleClicked = (params) => {
+        navigate(`/tickets/${params.data.issue_key}`, { state: { ticket: params.data } });
+    };
 
     return (
         <div className="h-full flex flex-col">
@@ -75,10 +82,11 @@ const Tickets = () => {
                     rowSelection={{ type: 'multiple' }}
                     pagination={true}
                     paginationPageSize={10}
-                    paginationPageSizeSelector={[5,10, 20, 50, 100]}
+                    paginationPageSizeSelector={[5, 10, 20, 50, 100]}
                     theme={myTheme}
+                    onRowDoubleClicked={onRowDoubleClicked}
                 />
-                </div>
+            </div>
         </div>
     );
 };

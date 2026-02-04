@@ -1,7 +1,8 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AgGridReact } from 'ag-grid-react';
-import { getTickets } from '../services/api';
+import { getTickets, importTickets } from '../services/api';
+import { Upload } from 'lucide-react';
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
 import { themeQuartz } from 'ag-grid-community';
 
@@ -72,9 +73,52 @@ const Tickets = () => {
         navigate(`/tickets/${ticketId}`);
     };
 
+    const fileInputRef = useRef(null);
+
+    const handleFileUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        try {
+            setLoading(true);
+            await importTickets(file);
+            // Refresh tickets after import
+            const data = await getTickets();
+            setTickets(data);
+            alert('Tickets imported successfully!');
+        } catch (error) {
+            console.error("Failed to import tickets", error);
+            alert('Failed to import tickets. Please check the console for details.');
+        } finally {
+            setLoading(false);
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        }
+    };
+
     return (
         <div className="h-full flex flex-col">
-            <h2 className="text-2xl font-bold mb-4">Tickets</h2>
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold">Tickets</h2>
+                <div>
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileUpload}
+                        className="hidden"
+                        accept=".csv"
+                    />
+                    <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                        disabled={loading}
+                    >
+                        <Upload size={16} className="transform rotate-180" />
+                        {loading ? 'Importing...' : 'Import CSV'}
+                    </button>
+                </div>
+            </div>
             <div className={myTheme.className} style={{ height: '600px', minHeight: '500px' }}>
                 <AgGridReact
                     rowData={tickets}

@@ -1,34 +1,57 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useState, useEffect } from 'react'
 import './App.css'
+import { getTickets } from './services/api'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [tickets, setTickets] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const fetchTickets = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await getTickets()
+      setTickets(data)
+    } catch (err) {
+      setError('Failed to fetch tickets. Is the backend running?')
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchTickets()
+  }, [])
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
+    <div className="App">
+      <h1>AI Ticketing System - API Connection Test</h1>
+
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+        <button onClick={fetchTickets} disabled={loading}>
+          {loading ? 'Refreshing...' : 'Refresh Tickets'}
         </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+
+      <div className="ticket-list">
+        <h2>Tickets ({tickets.length})</h2>
+        {tickets.length === 0 ? (
+          <p>No tickets found.</p>
+        ) : (
+          <ul style={{ textAlign: 'left' }}>
+            {tickets.map((ticket, index) => (
+              <li key={index}>
+                <strong>{ticket.issue_key}</strong>: {ticket.summary}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
   )
 }
 

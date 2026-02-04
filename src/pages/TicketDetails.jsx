@@ -120,6 +120,18 @@ const TicketDetails = () => {
                                         <div className="text-sm font-medium dark:text-white">{ticket.assignee || 'Unassigned'}</div>
                                     </div>
                                 </div>
+
+                                <div>
+                                    <div className="text-xs text-gray-500 mt-4 mb-1">Reporter</div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs font-bold">
+                                            {ticket.reporter ? ticket.reporter[0] : '?'}
+                                        </div>
+                                        <div>
+                                            <div className="text-sm font-medium dark:text-white">{ticket.reporter || 'Unknown'}</div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             
@@ -131,6 +143,11 @@ const TicketDetails = () => {
                             <div>
                                 <div className="text-xs text-gray-500">Created</div>
                                 <div className="text-sm font-medium dark:text-white">{formatDate(ticket.created_at)}</div>
+                            </div>
+
+                            <div>
+                                <div className="text-xs text-gray-500">Updated</div>
+                                <div className="text-sm font-medium dark:text-white">{formatDate(ticket.updated_at)}</div>
                             </div>
                            
                             <div>

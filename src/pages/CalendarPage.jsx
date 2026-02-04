@@ -12,6 +12,24 @@ const CalendarPage = () => {
     const [tickets, setTickets] = useState([]);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [selectedTickets, setSelectedTickets] = useState([]);
+    const [date, setDate] = useState(new Date());
+    const [view, setView] = useState('month');
+
+    const navigate = (action) => {
+    let newDate = new Date(date);
+    if (action === 'TODAY') {
+        newDate = new Date();
+    } else if (action === 'PREV') {
+        if (view === 'month') newDate = moment(date).subtract(1, 'month').toDate();
+        else if (view === 'week') newDate = moment(date).subtract(1, 'week').toDate();
+        else newDate = moment(date).subtract(1, 'day').toDate();
+    } else if (action === 'NEXT') {
+        if (view === 'month') newDate = moment(date).add(1, 'month').toDate();
+        else if (view === 'week') newDate = moment(date).add(1, 'week').toDate();
+        else newDate = moment(date).add(1, 'day').toDate();
+    }
+    setDate(newDate);
+    };
 
     useEffect(() => {
         const fetchTickets = async () => {
@@ -62,22 +80,36 @@ const CalendarPage = () => {
 
     return (
         <div className="h-full flex flex-col md:flex-row gap-6">
-            <div className="flex-1 bg-white dark:bg-gray-800 p-4 rounded-lg shadow "> 
+            <div className="flex-1 bg-white dark:bg-gray-800 p-4 rounded-lg shadow" style={{ minHeight: '600px', display: 'flex', flexDirection: 'column' }}>
+                <div className="flex items-center justify-between mb-3">
+                    
+                    <div className="text-m font-medium ">{moment(date).format(view === 'month' ? 'MMMM YYYY' : 'MMM D, YYYY')}</div>
+                    <div className="flex gap-2">
+                    <button className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded" onClick={() => navigate('PREV')}> ← </button>
+                    <button className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded" onClick={() => navigate('TODAY')}>Current</button>
+                    <button className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded" onClick={() => navigate('NEXT')}> → </button>
+                    </div>
+                </div>
+
                 <Calendar
-                localizer={localizer}
-                events={events}
-                startAccessor="start"
-                endAccessor="end"
-                style={{ height: '100%' }}
-                onSelectSlot={handleSelectSlot}
-                onSelectEvent={handleSelectEvent}
-                selectable
-                views={['month', 'week', 'day']}
-                defaultView="month"
-                className="text-gray-800 dark:text-gray-200"
-                toolbar={false}                 
+                    localizer={localizer}
+                    events={events}
+                    startAccessor="start"
+                    endAccessor="end"
+                    style={{ height: '100%' }}
+                    onSelectSlot={handleSelectSlot}
+                    onSelectEvent={handleSelectEvent}
+                    selectable
+                    views={['month', 'week', 'day']}
+                    defaultView="month"
+                    view={view}
+                    onView={(v) => setView(v)}
+                    date={date}
+                    onNavigate={(d) => setDate(d)}
+                    className="text-gray-800 dark:text-gray-200"
+                    toolbar={false}
                 />
-            </div>
+                </div>
 
             <div className="w-full md:w-80 bg-white dark:bg-gray-800 p-6 rounded-lg shadow overflow-y-auto ">
                 <h3 className="text-xl font-bold mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">

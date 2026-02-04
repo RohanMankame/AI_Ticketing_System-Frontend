@@ -15,14 +15,14 @@ const Sidebar = () => {
             <div className="p-6 ">
                 <h2 className="text-xl font-bold tracking-wider">AI TICKETING SYSTEM</h2>
             </div>
-            <nav className="flex-1 p-4 space-y-2">
+            <nav className="flex-1 p-0 space-y-2">
                 {navItems.map((item) => (
                     <NavLink
                         key={item.name}
                         to={item.path}
                         className={({ isActive }) =>
-                            `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 ${isActive
-                                ? 'bg-blue-600 text-white'
+                            `flex items-center space-x-3 px-4 py-3  transition-colors duration-200 ${isActive
+                                ? 'bg-black-200 text-white'
                                 : 'text-gray-400 hover:bg-gray-800 hover:text-white'
                             }`
                         }

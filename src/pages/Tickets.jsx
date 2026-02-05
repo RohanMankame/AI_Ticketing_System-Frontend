@@ -14,7 +14,7 @@ import 'ag-grid-community/styles/ag-theme-quartz.css';
 
 
 const myTheme = themeQuartz
-    .withParams({
+	.withParams({
         backgroundColor: "#1f2836",
         browserColorScheme: "dark",
         chromeBackgroundColor: {

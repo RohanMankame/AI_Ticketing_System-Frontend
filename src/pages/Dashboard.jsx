@@ -112,6 +112,28 @@ const Dashboard = () => {
                     <div className="h-80">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
+                                <defs>
+                                    <linearGradient id="gradientBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#3b82f6" />
+                                        <stop offset="100%" stopColor="#1e40af" />
+                                    </linearGradient>
+                                    <linearGradient id="gradientGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#10b981" />
+                                        <stop offset="100%" stopColor="#059669" />
+                                    </linearGradient>
+                                    <linearGradient id="gradientYellow" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#f59e0b" />
+                                        <stop offset="100%" stopColor="#d97706" />
+                                    </linearGradient>
+                                    <linearGradient id="gradientRed" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#ef4444" />
+                                        <stop offset="100%" stopColor="#dc2626" />
+                                    </linearGradient>
+                                    <linearGradient id="gradientPurple" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#8b5cf6" />
+                                        <stop offset="100%" stopColor="#6d28d9" />
+                                    </linearGradient>
+                                </defs>
                                 <Pie
                                     data={statusData}
                                     cx="50%"
@@ -123,9 +145,10 @@ const Dashboard = () => {
                                     dataKey="value"
                                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                                 >
-                                    {statusData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                    ))}
+                                    {statusData.map((entry, index) => {
+                                        const gradients = ['url(#gradientBlue)', 'url(#gradientGreen)', 'url(#gradientYellow)', 'url(#gradientRed)', 'url(#gradientPurple)'];
+                                        return <Cell key={`cell-${index}`} fill={gradients[index % gradients.length]} />;
+                                    })}
                                 </Pie>
                                 <Tooltip />
                                 <Legend />
@@ -143,6 +166,41 @@ const Dashboard = () => {
                                 data={priorityData}
                                 margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                             >
+                                <defs>
+                                    <linearGradient id="barGradientRed" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#ef4444" stopOpacity={0.9} />
+                                        <stop offset="100%" stopColor="#dc2626" stopOpacity={0.6} />
+                                    </linearGradient>
+                                    <linearGradient id="barGradientOrange" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.9} />
+                                        <stop offset="100%" stopColor="#d97706" stopOpacity={0.6} />
+                                    </linearGradient>
+                                    <linearGradient id="barGradientBlue" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.9} />
+                                        <stop offset="100%" stopColor="#1e40af" stopOpacity={0.6} />
+                                    </linearGradient>
+                                </defs><defs>
+                                    <linearGradient id="barGradientPurple" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.9} />
+                                        <stop offset="100%" stopColor="#6d28d9" stopOpacity={0.6} />
+                                    </linearGradient>
+                                    <linearGradient id="barGradientRed" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#ef4444" stopOpacity={0.9} />
+                                        <stop offset="100%" stopColor="#dc2626" stopOpacity={0.6} />
+                                    </linearGradient>
+                                    <linearGradient id="barGradientOrange" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.9} />
+                                        <stop offset="100%" stopColor="#d97706" stopOpacity={0.6} />
+                                    </linearGradient>
+                                    <linearGradient id="barGradientGreen" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#10b981" stopOpacity={0.9} />
+                                        <stop offset="100%" stopColor="#059669" stopOpacity={0.6} />
+                                    </linearGradient>
+                                    <linearGradient id="barGradientBlue" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.9} />
+                                        <stop offset="100%" stopColor="#1e40af" stopOpacity={0.6} />
+                                    </linearGradient>
+                                </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                                 <XAxis dataKey="name" tick={{ fill: '#6b7280' }} />
                                 <YAxis tick={{ fill: '#6b7280' }} />
@@ -150,13 +208,14 @@ const Dashboard = () => {
                                     cursor={{ fill: 'transparent' }}
                                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                 />
-                                <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={50}>
+                                <Bar dataKey="count" radius={[4, 4, 0, 0]} barSize={50}>
                                     {
                                         priorityData.map((entry, index) => (
                                             <Cell key={`cell-${index}`} fill={
-                                                entry.name === 'High' || entry.name === 'Critical' ? '#ef4444' :
-                                                    entry.name === 'Medium' ? '#f59e0b' :
-                                                        '#3b82f6'
+                                                entry.name === 'Critical' ? 'url(#barGradientPurple)' :
+                                                    entry.name === 'High' ? 'url(#barGradientRed)' :
+                                                        entry.name === 'Medium' ? 'url(#barGradientOrange)' :
+                                                            'url(#barGradientGreen)'
                                             } />
                                         ))
                                     }

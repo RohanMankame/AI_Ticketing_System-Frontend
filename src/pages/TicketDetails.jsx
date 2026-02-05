@@ -225,7 +225,7 @@ const TicketDetails = () => {
 
             {/* AI Auto-Analysis Info */}
             {(ticket.auto_solution || ticket.auto_tags) && (
-                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-xl shadow-sm border border-purple-100 dark:border-purple-800 p-6 mb-8">
+                <div className="bg-linear-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-xl shadow-sm border border-purple-100 dark:border-purple-800 p-6 mb-8">
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                         Analysis
                     </h3>

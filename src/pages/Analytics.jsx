@@ -115,11 +115,9 @@ const Analytics = () => {
             ) : data ? (
                 <>
                     {/* Explanation Card */}
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-6 rounded-xl border border-blue-100 dark:border-blue-800/50 shadow-sm">
+                    <div className="bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-6 rounded-xl border border-blue-100 dark:border-blue-800/50 shadow-sm">
                         <div className="flex items-start gap-4">
-                            <div className="p-3 bg-white dark:bg-blue-900 rounded-lg shadow-sm text-2xl">
-                                📊
-                            </div>
+                            
                             <div>
                                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">AI Forecast Analysis</h3>
                                 <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
@@ -130,7 +128,7 @@ const Analytics = () => {
                     </div>
 
                     {/* Chart */}
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 h-[500px]">
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 h-75">
                         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Ticket Volume Trend</h3>
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={data.chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>

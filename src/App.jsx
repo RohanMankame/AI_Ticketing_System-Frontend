@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard'
 import Tickets from './pages/Tickets'
 import CalendarPage from './pages/CalendarPage'
 import Knowledge from './pages/Knowledge'
+import KnowledgeDetails from './pages/KnowledgeDetails'
 import Analytics from './pages/Analytics'
 import TicketDetails from './pages/TicketDetails'
 import './App.css'
@@ -18,6 +19,7 @@ function App() {
           <Route path="tickets/:ticketId" element={<TicketDetails />} />
           <Route path="calendar" element={<CalendarPage />} />
           <Route path="knowledge" element={<Knowledge />} />
+          <Route path="knowledge/:id" element={<KnowledgeDetails />} />
           <Route path="analytics" element={<Analytics />} />
         </Route>
       </Routes>

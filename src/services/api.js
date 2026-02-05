@@ -53,6 +53,11 @@ export const getKnowledgeArticles = async () => {
   return response.data;
 };
 
+export const getKnowledgeArticle = async (articleId) => {
+  const response = await api.get(`/knowledge/${articleId}`);
+  return response.data;
+};
+
 export const createKnowledgeArticle = async (articleData) => {
   const response = await api.post('/knowledge/', articleData);
   return response.data;

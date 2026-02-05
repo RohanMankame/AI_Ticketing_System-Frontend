@@ -125,7 +125,7 @@ const Tickets = () => {
                     columnDefs={colDefs}
                     defaultColDef={defaultColDef}
                     animateRows={true}
-                    rowSelection={{ type: 'multiple' }}
+                    rowSelection={{ mode: 'multiRow' }}
                     pagination={true}
                     paginationPageSize={10}
                     paginationPageSizeSelector={[5, 10, 20, 50, 100]}

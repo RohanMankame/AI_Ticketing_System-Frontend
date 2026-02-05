@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { getTicket, draftKnowledgeArticle, createKnowledgeArticle } from '../services/api';
+import { getTicket, draftKnowledgeArticle, createKnowledgeArticle, analyzeTicket, getSimilarTickets } from '../services/api';
 
 const TicketDetails = () => {
     const { ticketId } = useParams();
@@ -13,6 +13,22 @@ const TicketDetails = () => {
     const [draftLoading, setDraftLoading] = useState(false);
     const [draftData, setDraftData] = useState({ title: '', content: '', type: 'solution', tags: '' });
     const [savingDraft, setSavingDraft] = useState(false);
+
+    // Similar Tickets State
+    const [similarTickets, setSimilarTickets] = useState([]);
+    const [searchingSimilar, setSearchingSimilar] = useState(false);
+
+    const handleFindSimilar = async () => {
+        try {
+            setSearchingSimilar(true);
+            const similar = await getSimilarTickets(ticketId);
+            setSimilarTickets(similar);
+        } catch (error) {
+            console.error("Failed to fetch similar tickets", error);
+        } finally {
+            setSearchingSimilar(false);
+        }
+    };
 
     const onDraftClick = async () => {
         try {
@@ -63,6 +79,19 @@ const TicketDetails = () => {
             try {
                 const data = await getTicket(ticketId);
                 setTicket(data);
+
+                // Auto-analyze if no solution exists
+                if (data && !data.auto_solution) {
+                    // We don't await this to keep UI responsive, or we can use a separate state
+                    // Let's do it here
+                    analyzeTicket(ticketId).then(analysis => {
+                        setTicket(prev => ({
+                            ...prev,
+                            auto_solution: analysis.auto_solution,
+                            auto_tags: analysis.auto_tags
+                        }));
+                    }).catch(err => console.error("Auto-analysis failed", err));
+                }
             } catch (error) {
                 console.error("Failed to fetch ticket details", error);
             } finally {
@@ -194,6 +223,91 @@ const TicketDetails = () => {
                 </div>
             </div>
 
+            {/* AI Auto-Analysis Info */}
+            {(ticket.auto_solution || ticket.auto_tags) && (
+                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-xl shadow-sm border border-purple-100 dark:border-purple-800 p-6 mb-8">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                        Analysis
+                    </h3>
+
+                    {ticket.auto_tags && (
+                        <div className="mb-4">
+                            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Suggested Tags</h4>
+                            <div className="flex flex-wrap gap-2">
+                                {(Array.isArray(ticket.auto_tags) ? ticket.auto_tags : (ticket.auto_tags || '').split(',')).map((tag, i) => (
+                                    tag.trim() && (
+                                        <span key={i} className="px-2 py-1 bg-white dark:bg-gray-800 border border-purple-200 dark:border-purple-700 rounded-md text-xs text-purple-700 dark:text-purple-300 shadow-sm">
+                                            #{tag.trim()}
+                                        </span>
+                                    )
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {ticket.auto_solution && (
+                        <div>
+                            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Suggested Solution</h4>
+                            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-purple-200 dark:border-purple-700 text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
+                                {ticket.auto_solution}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Similar Tickets Section */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden mb-8 p-6">
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        Similar Tickets
+                    </h3>
+                    <button
+                        onClick={handleFindSimilar}
+                        disabled={searchingSimilar}
+                       className='text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-medium shadow-md '
+                    >
+                        {searchingSimilar ? 'Searching...' : 'Find Similar'}
+                    </button>
+                </div>
+
+                {similarTickets.length > 0 ? (
+                    <div className="space-y-3">
+                        {similarTickets.map(st => (
+                            <a
+                                key={st.ticket.id}
+                                href={`/tickets/${st.ticket.id}`}
+                                className="block p-4 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all group"
+                            >
+                                <div className="flex justify-between items-start">
+                                    <div className="font-semibold text-blue-600 dark:text-blue-400 group-hover:underline mb-1">
+                                        {st.ticket.issue_key}: {st.ticket.summary}
+                                    </div>
+                                    <span className={`text-xs text-white px-2 py-0.5 rounded-full ${st.ticket.status === 'Resolved' || st.ticket.status === 'Closed' ? 'bg-green-100 text-green-700' : 'bg-gray-600 text-gray-700'
+                                        }`}>
+                                        {st.ticket.status}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center mt-2">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 flex-1">
+                                        {st.ticket.summary || "No description"}
+                                    </p>
+                                    <span className="text-xs text-gray-400 ml-2" title="Similarity Score">
+                                        {Math.round(st.score * 100)}% match
+                                    </span>
+                                </div>
+                            </a>
+                        ))}
+                    </div>
+                ) : (
+                    searchingSimilar ? (
+                        <div className="text-center py-8 text-gray-500">Searching...</div>
+                    ) : (
+                        <div className="text-sm text-gray-400 italic">Click "Find Similar" to search for related historical tickets.</div>
+                    )
+                )}
+            </div>
+
             {/* AI Action Card - Draft Editor */}
             <div className={`rounded-xl shadow-lg border overflow-hidden transition-all duration-300 ${isDrafting ? 'bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-900' : 'bg-gray-50 dark:bg-gray-900/50 border-dashed border-gray-300 dark:border-gray-700'}`}>
                 {!isDrafting ? (
@@ -217,7 +331,7 @@ const TicketDetails = () => {
                                 </>
                             ) : (
                                 <>
-                                    <span>✨</span> Generate Draft
+                                    Generate Draft
                                 </>
                             )}
                         </button>

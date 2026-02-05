@@ -33,9 +33,15 @@ const Knowledge = () => {
         try {
             setLoading(true);
             const data = await searchKnowledge(searchQuery);
-            setArticles(data || []);
+            // Search returns {score, article} objects, need to map to article
+            const results = data.map(item => ({
+                ...item.article,
+                _score: item.score // Keep score if needed
+            }));
+            setArticles(results || []);
         } catch (error) {
             console.error("Search failed", error);
+            setArticles([]); // Clear on error or ensure empty array
         } finally {
             setLoading(false);
         }
@@ -78,7 +84,9 @@ const Knowledge = () => {
                 </div>
             ) : articles.length === 0 ? (
                 <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
-                    <p className="text-gray-500">No articles found.</p>
+                    <p className="text-gray-500">
+                        {searchQuery ? 'No articles match search' : 'No articles found.'}
+                    </p>
                     {searchQuery && (
                         <button
                             onClick={() => { setSearchQuery(''); fetchArticles(); }}

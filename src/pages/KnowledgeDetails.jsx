@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 import { getKnowledgeArticle } from '../services/api';
 
 const KnowledgeDetails = () => {
@@ -89,9 +90,9 @@ const KnowledgeDetails = () => {
                 </div>
 
                 <div className="p-8 prose dark:prose-invert max-w-none">
-                    <div className="whitespace-pre-wrap text-gray-700 dark:text-gray-300 leading-relaxed">
+                    <ReactMarkdown>
                         {article.content}
-                    </div>
+                    </ReactMarkdown>
                 </div>
             </article>
         </div>

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { getForecast } from '../services/api';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, BarChart, Bar, Legend } from 'recharts';
+import { getForecast, getForecastByType } from '../services/api';
 
 const Analytics = () => {
     const [data, setData] = useState(null);
+    const [typeData, setTypeData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [historyDays, setHistoryDays] = useState(30);
     const [forecastDays, setForecastDays] = useState(7);
@@ -15,33 +16,74 @@ const Analytics = () => {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const result = await getForecast(historyDays, forecastDays);
+            const [volumeResult, typeResult] = await Promise.all([
+                getForecast(historyDays, forecastDays),
+                getForecastByType(historyDays, forecastDays)
+            ]);
 
-            // Transform data for chart: Merge history and forecast into uniform structure
-            // Each data point will have 'date', 'history' (value or null), and 'forecast' (value or null)
-            const historyData = result.history.map(d => ({
-                date: d.date,
-                history: d.count,
-                forecast: null,
-                type: 'History'
-            }));
-
-            const forecastData = result.forecast.map(d => ({
-                date: d.date,
-                history: null,
-                forecast: d.count,
-                type: 'Forecast'
-            }));
-
+            // --- Process Volume Trend Data ---
+            // (Data is now derived from combinedTypeData below to ensure consistency)
+            /* 
+            const historyData = volumeResult.history.map(d => ({...}));
+            const forecastData = volumeResult.forecast.map(d => ({...}));
             const combinedData = [...historyData, ...forecastData];
-            combinedData.sort((a, b) => new Date(a.date) - new Date(b.date));
+            */
+
+            // --- Process Forecast By Type Data ---
+            /* 
+               Each item in typeResult.history/forecast looks like: 
+               { date: "2023-10-27", counts: { "Bug": 1, "Support": 2 } }
+               We need to flatten this for Recharts:
+               { date: "2023-10-27", Bug: 1, Support: 2, type: 'History' }
+            */
+
+            const processTypeData = (list, type) => list.map(item => {
+                const flatItem = { date: item.date, type };
+                if (item.counts) {
+                    Object.keys(item.counts).forEach(key => {
+                        flatItem[key] = item.counts[key];
+                    });
+                } else {
+                    // Fallback: Assume flat structure (e.g., { date: '...', Bug: 1, Support: 2 })
+                    Object.keys(item).forEach(key => {
+                        if (key !== 'date') {
+                            flatItem[key] = item[key];
+                        }
+                    });
+                }
+                return flatItem;
+            });
+
+            const typeHistory = processTypeData(typeResult.history, 'History');
+            const typeForecast = processTypeData(typeResult.forecast, 'Forecast');
+
+            const combinedTypeData = [...typeHistory, ...typeForecast];
+            combinedTypeData.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            // Derive Total Volume Chart Data from Type Data to ensure consistency
+            const derivedVolumeData = combinedTypeData.map(item => {
+                // Calculate total count for this day by summing known types
+                const total = ['Bug', 'Feature Request', 'Support', 'Task'].reduce((sum, key) => sum + (item[key] || 0), 0);
+
+                return {
+                    date: item.date,
+                    history: item.type === 'History' ? total : null,
+                    forecast: item.type === 'Forecast' ? total : null,
+                    type: item.type
+                };
+            });
 
             setData({
-                chartData: combinedData,
-                explanation: result.explanation
+                chartData: derivedVolumeData,
+                explanation: volumeResult.explanation
             });
+
+            setTypeData({
+                chartData: combinedTypeData
+            });
+
         } catch (error) {
-            console.error("Failed to fetch forecast", error);
+            console.error("Failed to fetch analytics", error);
         } finally {
             setLoading(false);
         }
@@ -117,7 +159,7 @@ const Analytics = () => {
                     {/* Explanation Card */}
                     <div className="bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-6 rounded-xl border border-blue-100 dark:border-blue-800/50 shadow-sm">
                         <div className="flex items-start gap-4">
-                            
+
                             <div>
                                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">AI Forecast Analysis</h3>
                                 <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
@@ -173,6 +215,34 @@ const Analytics = () => {
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
+
+                    {/* Forecast by Type Chart */}
+                    {typeData && (
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 h-96">
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Forecast by Ticket Type</h3>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={typeData.chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                                    <XAxis
+                                        dataKey="date"
+                                        tick={{ fill: '#6b7280', fontSize: 12 }}
+                                        tickFormatter={(val) => new Date(val).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                    />
+                                    <YAxis tick={{ fill: '#6b7280', fontSize: 12 }} />
+                                    <Tooltip
+                                        cursor={{ fill: 'transparent' }}
+                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                    />
+                                    <Legend />
+                                    <ReferenceLine x={new Date().toISOString().split('T')[0]} stroke="#ef4444" strokeDasharray="3 3" />
+                                    <Bar dataKey="Bug" stackId="a" fill="#ef4444" name="Bug" />
+                                    <Bar dataKey="Feature Request" stackId="a" fill="#3b82f6" name="Feature Request" />
+                                    <Bar dataKey="Support" stackId="a" fill="#10b981" name="Support" />
+                                    <Bar dataKey="Task" stackId="a" fill="#f59e0b" name="Task" />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    )}
                 </>
             ) : (
                 <div className="text-center py-12 text-gray-500">

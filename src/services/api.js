@@ -93,4 +93,11 @@ export const getForecast = async (days = 7, daysToForecast = 7) => {
   return response.data;
 };
 
+export const getForecastByType = async (days = 30, daysToForecast = 7) => {
+  const response = await api.get('/analytics/forecast-by-type', {
+    params: { days, days_to_forecast: daysToForecast },
+  });
+  return response.data;
+};
+
 export default api;

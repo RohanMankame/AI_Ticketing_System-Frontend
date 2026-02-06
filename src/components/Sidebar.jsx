@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Ticket, Calendar, Book, BarChart2 } from 'lucide-react';
+import { LayoutDashboard, Ticket, Calendar, Book, BarChart2, Tag } from 'lucide-react';
 
 const Sidebar = () => {
     const navItems = [
@@ -7,6 +7,7 @@ const Sidebar = () => {
         { name: 'Tickets', path: '/tickets', icon: <Ticket size={20} /> },
         { name: 'Calendar', path: '/calendar', icon: <Calendar size={20} /> },
         { name: 'Knowledge', path: '/knowledge', icon: <Book size={20} /> },
+        { name: 'Categorization', path: '/categorization', icon: <Tag size={20} /> },
         { name: 'Analytics', path: '/analytics', icon: <BarChart2 size={20} /> },
     ];
 
@@ -32,7 +33,7 @@ const Sidebar = () => {
                     </NavLink>
                 ))}
             </nav>
-            
+
         </aside>
     );
 };

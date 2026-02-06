@@ -63,6 +63,17 @@ export const createKnowledgeArticle = async (articleData) => {
   return response.data;
 };
 
+// Categorization
+export const getTicketTags = async () => {
+  const response = await api.get('/tickets/tags');
+  return response.data;
+};
+
+export const getTicketsByTag = async (tag) => {
+  const response = await api.get(`/tickets/tags/${tag}`);
+  return response.data;
+};
+
 export const searchKnowledge = async (query) => {
   const response = await api.get('/knowledge/search', {
     params: { q: query },

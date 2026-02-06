@@ -129,84 +129,88 @@ const CalendarPage = () => {
     };
 
     return (
-
-        
-
-        
-        <div className="h-full flex flex-col md:flex-row gap-6"> 
-
-
-            <div className="flex-1 bg-white dark:bg-gray-800 p-4 rounded-lg shadow" style={{ minHeight: '600px', display: 'flex', flexDirection: 'column' }}>
-                <div className="flex items-center justify-between mb-3">
-
-                    <div className="text-m font-medium ">{moment(date).format(view === 'month' ? 'MMMM YYYY' : 'MMM D, YYYY')}</div>
-                    <div className="flex gap-2">
-                        <button className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded" onClick={() => navigate('PREV')}> ← </button>
-                        <button className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded" onClick={() => navigate('TODAY')}>Current</button>
-                        <button className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded" onClick={() => navigate('NEXT')}> → </button>
-                    </div>
-                </div>
-
-                <Calendar
-                    localizer={localizer}
-                    events={events}
-                    startAccessor="start"
-                    endAccessor="end"
-                    style={{ height: '100%' }}
-                    onSelectSlot={handleSelectSlot}
-                    onSelectEvent={handleSelectEvent}
-                    selectable
-                    views={['month', 'week', 'day']}
-                    defaultView="month"
-                    view={view}
-                    onView={(v) => setView(v)}
-                    date={date}
-                    onNavigate={(d) => setDate(d)}
-                    className="text-gray-800 dark:text-gray-200"
-                    toolbar={false}
-                    eventPropGetter={(event) => ({
-                        style: {
-                            backgroundColor: event.resource.type === 'open' ? '#3b82f6' : '#10b981', // Blue for Open, Green for Closed
-                            fontSize: '0.85em',
-                            marginBottom: '2px'
-                        }
-                    })}
-                />
+        <div className="h-full flex flex-col space-y-4">
+            <div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Calendar</h2>
+                <p className="text-gray-500 dark:text-gray-400 mt-1">View tickets and due dates.</p>
             </div>
 
-            <div className="w-full md:w-80 bg-white dark:bg-gray-800 p-6 rounded-lg shadow overflow-y-auto ">
-                <h3 className="text-xl font-bold mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
-                    {moment(selectedDate).format('MMMM Do, YYYY')}
-                </h3>
+            <div className="flex-1 flex flex-col md:flex-row gap-6 min-h-0">
+                {/* Added min-h-0 to allow flex child to scroll if needed, though Calendar handles its own height usually */}
 
-                {selectedTickets.length === 0 ? (
-                    <p className="text-gray-500 dark:text-gray-400">No tickets due on this day.</p>
-                ) : (
-                    <div className="space-y-4">
-                        {selectedTickets.map(ticket => (
-                            <div
-                                key={ticket.issue_key}
-                                onClick={() => handleTicketClick(ticket)}
-                                className="p-3 bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all cursor-pointer hover:border-blue-400"
-                            >
-                                <div className="flex justify-between items-start mb-1">
-                                    <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">{ticket.issue_key}</span>
-                                    <span className={`text-xs px-2 py-0.5 rounded-full ${ticket.priority === 'High' ? 'bg-red-300 text-red-900' :
-                                        ticket.priority === 'Medium' ? 'bg-yellow-300 text-yellow-900' :
-                                            'bg-green-300 text-green-900'
-                                        }`}>
-                                        {ticket.priority || 'Normal'}
-                                    </span>
-                                </div>
-                                <h4 className="font-medium text-gray-900 dark:text-white mb-1 truncate">{ticket.summary}</h4>
-                                <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
-                                    <span>{ticket.status}</span>
-                                    <span>{ticket.assignee || 'Unassigned'}</span>
-                                </div>
-                            </div>
-                        ))}
+
+                <div className="flex-1 bg-white dark:bg-gray-800 p-4 rounded-lg shadow" style={{ minHeight: '600px', display: 'flex', flexDirection: 'column' }}>
+                    <div className="flex items-center justify-between mb-3">
+
+                        <div className="text-m font-medium ">{moment(date).format(view === 'month' ? 'MMMM YYYY' : 'MMM D, YYYY')}</div>
+                        <div className="flex gap-2">
+                            <button className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded" onClick={() => navigate('PREV')}> ← </button>
+                            <button className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded" onClick={() => navigate('TODAY')}>Current</button>
+                            <button className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded" onClick={() => navigate('NEXT')}> → </button>
+                        </div>
                     </div>
-                )}
+
+                    <Calendar
+                        localizer={localizer}
+                        events={events}
+                        startAccessor="start"
+                        endAccessor="end"
+                        style={{ height: '100%' }}
+                        onSelectSlot={handleSelectSlot}
+                        onSelectEvent={handleSelectEvent}
+                        selectable
+                        views={['month', 'week', 'day']}
+                        defaultView="month"
+                        view={view}
+                        onView={(v) => setView(v)}
+                        date={date}
+                        onNavigate={(d) => setDate(d)}
+                        className="text-gray-800 dark:text-gray-200"
+                        toolbar={false}
+                        eventPropGetter={(event) => ({
+                            style: {
+                                backgroundColor: event.resource.type === 'open' ? '#3b82f6' : '#10b981', // Blue for Open, Green for Closed
+                                fontSize: '0.85em',
+                                marginBottom: '2px'
+                            }
+                        })}
+                    />
+                </div>
+
+                <div className="w-full md:w-80 bg-white dark:bg-gray-800 p-6 rounded-lg shadow overflow-y-auto ">
+                    <h3 className="text-xl font-bold mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                        {moment(selectedDate).format('MMMM Do, YYYY')}
+                    </h3>
+
+                    {selectedTickets.length === 0 ? (
+                        <p className="text-gray-500 dark:text-gray-400">No tickets due on this day.</p>
+                    ) : (
+                        <div className="space-y-4">
+                            {selectedTickets.map(ticket => (
+                                <div
+                                    key={ticket.issue_key}
+                                    onClick={() => handleTicketClick(ticket)}
+                                    className="p-3 bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all cursor-pointer hover:border-blue-400"
+                                >
+                                    <div className="flex justify-between items-start mb-1">
+                                        <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">{ticket.issue_key}</span>
+                                        <span className={`text-xs px-2 py-0.5 rounded-full ${ticket.priority === 'High' ? 'bg-red-300 text-red-900' :
+                                            ticket.priority === 'Medium' ? 'bg-yellow-300 text-yellow-900' :
+                                                'bg-green-300 text-green-900'
+                                            }`}>
+                                            {ticket.priority || 'Normal'}
+                                        </span>
+                                    </div>
+                                    <h4 className="font-medium text-gray-900 dark:text-white mb-1 truncate">{ticket.summary}</h4>
+                                    <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+                                        <span>{ticket.status}</span>
+                                        <span>{ticket.assignee || 'Unassigned'}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

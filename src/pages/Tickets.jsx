@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AgGridReact } from 'ag-grid-react';
 import { getTickets, importTickets } from '../services/api';
-import { Upload } from 'lucide-react';
+import { Upload, Search } from 'lucide-react';
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
 import { themeQuartz } from 'ag-grid-community';
 
@@ -14,7 +14,7 @@ import 'ag-grid-community/styles/ag-theme-quartz.css';
 
 
 const myTheme = themeQuartz
-	.withParams({
+    .withParams({
         backgroundColor: "#1f2836",
         browserColorScheme: "dark",
         chromeBackgroundColor: {
@@ -28,6 +28,7 @@ const myTheme = themeQuartz
 
 const Tickets = () => {
     const [tickets, setTickets] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
 
 
@@ -101,22 +102,34 @@ const Tickets = () => {
         <div className="h-full flex flex-col">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-bold">Tickets</h2>
-                <div>
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileUpload}
-                        className="hidden"
-                        accept=".csv"
-                    />
-                    <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-                        disabled={loading}
-                    >
-                        <Upload size={16} className="transform rotate-180" />
-                        {loading ? 'Importing...' : 'Import CSV'}
-                    </button>
+                <div className="flex items-center gap-4">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Search tickets..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                        />
+                    </div>
+                    <div>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileUpload}
+                            className="hidden"
+                            accept=".csv"
+                        />
+                        <button
+                            onClick={() => fileInputRef.current?.click()}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                            disabled={loading}
+                        >
+                            <Upload size={16} className="transform rotate-180" />
+                            {loading ? 'Importing...' : 'Import CSV'}
+                        </button>
+                    </div>
                 </div>
             </div>
             <div className={myTheme.className} style={{ height: '600px', minHeight: '500px' }}>
@@ -124,6 +137,7 @@ const Tickets = () => {
                     rowData={tickets}
                     columnDefs={colDefs}
                     defaultColDef={defaultColDef}
+                    quickFilterText={searchTerm}
                     animateRows={true}
                     rowSelection={{ mode: 'multiRow' }}
                     pagination={true}

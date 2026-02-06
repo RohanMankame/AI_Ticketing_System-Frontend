@@ -109,7 +109,7 @@ const Analytics = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto p-6 space-y-8">
+        <div className="h-full p-6 space-y-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Analytics Dashboard</h2>

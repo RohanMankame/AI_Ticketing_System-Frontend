@@ -11,6 +11,7 @@ const Sidebar = () => {
         { name: 'Analytics', path: '/analytics', icon: <BarChart2 size={20} /> },
     ];
 
+    //Sidebar component with navigation links
     return (
         <aside className="w-64 bg-gray-900 text-white h-screen flex flex-col fixed left-0 top-0 border-r border-gray-800">
             <div className="p-6 ">

@@ -13,6 +13,7 @@ const Analytics = () => {
         fetchData();
     }, [historyDays, forecastDays]);
 
+    // Fetch analytics data from backend API based on selected history and forecast days
     const fetchData = async () => {
         try {
             setLoading(true);
@@ -21,22 +22,8 @@ const Analytics = () => {
                 getForecastByType(historyDays, forecastDays)
             ]);
 
-            // --- Process Volume Trend Data ---
-            // (Data is now derived from combinedTypeData below to ensure consistency)
-            /* 
-            const historyData = volumeResult.history.map(d => ({...}));
-            const forecastData = volumeResult.forecast.map(d => ({...}));
-            const combinedData = [...historyData, ...forecastData];
-            */
 
-            // --- Process Forecast By Type Data ---
-            /* 
-               Each item in typeResult.history/forecast looks like: 
-               { date: "2023-10-27", counts: { "Bug": 1, "Support": 2 } }
-               We need to flatten this for Recharts:
-               { date: "2023-10-27", Bug: 1, Support: 2, type: 'History' }
-            */
-
+            // Process type data to flatten counts into individual fields for charting
             const processTypeData = (list, type) => list.map(item => {
                 const flatItem = { date: item.date, type };
                 if (item.counts) {
@@ -44,7 +31,7 @@ const Analytics = () => {
                         flatItem[key] = item.counts[key];
                     });
                 } else {
-                    // Fallback: Assume flat structure (e.g., { date: '...', Bug: 1, Support: 2 })
+                    // If counts is missing, ensure we still have the type field for charting
                     Object.keys(item).forEach(key => {
                         if (key !== 'date') {
                             flatItem[key] = item[key];
@@ -62,7 +49,7 @@ const Analytics = () => {
 
             // Derive Total Volume Chart Data from Type Data to ensure consistency
             const derivedVolumeData = combinedTypeData.map(item => {
-                // Calculate total count for this day by summing known types
+                // Calculate total count for day by summing known types
                 const total = ['Bug', 'Feature Request', 'Support', 'Task'].reduce((sum, key) => sum + (item[key] || 0), 0);
 
                 return {
@@ -89,6 +76,7 @@ const Analytics = () => {
         }
     };
 
+    // Custom tooltip for the area chart to show date and values with better formatting
     const CustomTooltip = ({ active, payload, label }) => {
         if (active && payload && payload.length) {
             const dataPoint = payload[0].payload;
@@ -116,7 +104,7 @@ const Analytics = () => {
                     <p className="text-gray-500 dark:text-gray-400 mt-1">AI-powered predictive insights for your ticketing system.</p>
                 </div>
 
-                {/* Controls */}
+                {/* History and Forecast days selection */}
                 <div className="flex gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
                     <div>
                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">History Days</label>
@@ -169,7 +157,7 @@ const Analytics = () => {
                         </div>
                     </div>
 
-                    {/* Chart */}
+                    {/* tickets forcast Chart */}
                     <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 h-75">
                         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Ticket Volume Trend</h3>
                         <ResponsiveContainer width="100%" height="100%">

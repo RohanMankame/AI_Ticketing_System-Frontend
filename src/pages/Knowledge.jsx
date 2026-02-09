@@ -8,6 +8,8 @@ const Knowledge = () => {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
 
+
+    // Fetch knowledge base articles 
     useEffect(() => {
         fetchArticles();
     }, []);
@@ -24,6 +26,7 @@ const Knowledge = () => {
         }
     };
 
+    // search knowledge base articles with query
     const handleSearch = async (e) => {
         e.preventDefault();
         if (!searchQuery.trim()) {
@@ -36,7 +39,7 @@ const Knowledge = () => {
             // Search returns {score, article} objects, need to map to article
             const results = data.map(item => ({
                 ...item.article,
-                _score: item.score // Keep score if needed
+                _score: item.score
             }));
             setArticles(results || []);
         } catch (error) {
@@ -97,7 +100,9 @@ const Knowledge = () => {
                     )}
                 </div>
             ) : (
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Knowledge base articles in grid */}
                     {articles.map((article) => (
                         <div
                             key={article.id}

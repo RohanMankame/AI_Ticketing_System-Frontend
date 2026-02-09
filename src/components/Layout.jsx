@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import TopNav from './TopNav';
 
+// Main layout component with sidebar and top navigation
 const Layout = () => {
     return (
         <div className="flex min-h-screen bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100 font-sans">

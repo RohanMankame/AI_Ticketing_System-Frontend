@@ -48,8 +48,8 @@ const Knowledge = () => {
     };
 
     return (
-        <div className="h-full p-6">
-            <div className="flex justify-between items-center mb-8">
+        <div className="h-full">
+            <div className="flex justify-between items-center mb-4">
                 <div>
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Knowledge Base</h2>
                     <p className="text-gray-600 dark:text-gray-400 mt-1">Explore documentation, guides, and tutorials.</p>

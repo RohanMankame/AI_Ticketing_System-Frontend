@@ -10,6 +10,7 @@ import TicketDetails from './pages/TicketDetails'
 import TicketCategorization from './pages/TicketCategorization'
 import './App.css'
 
+// Router 
 function App() {
   return (
     <Router>
@@ -22,7 +23,7 @@ function App() {
           <Route path="knowledge" element={<Knowledge />} />
           <Route path="knowledge/:id" element={<KnowledgeDetails />} />
           <Route path="analytics" element={<Analytics />} />
-          <Route path="categorization" element={<TicketCategorization />} /> {/* Added TicketCategorization route */}
+          <Route path="categorization" element={<TicketCategorization />} /> 
         </Route>
       </Routes>
     </Router>

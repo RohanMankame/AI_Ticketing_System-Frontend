@@ -17,6 +17,7 @@ const CalendarPage = () => {
     const [view, setView] = useState('month');
     const routerNavigate = useNavigate();
 
+    // Function to navigate calendar views (Today, Previous, Next)
     const navigate = (action) => {
         let newDate = new Date(date);
         if (action === 'TODAY') {
@@ -39,7 +40,7 @@ const CalendarPage = () => {
                 const data = await getTickets();
                 setTickets(data);
 
-                // Group tickets by date
+                // Group tickets by date and count open/closed for each date
                 const ticketsByDate = {};
                 data.forEach(ticket => {
                     const ticketDate = ticket.due_date ? new Date(ticket.due_date) : new Date(ticket.created_at);
@@ -61,9 +62,10 @@ const CalendarPage = () => {
                     }
                 });
 
+
                 const aggregatedEvents = [];
                 Object.values(ticketsByDate).forEach(group => {
-                    // Push Open tickets event first so it stays on top (usually)
+                    // Push Open tickets event first so it stays on top
                     if (group.open > 0) {
                         aggregatedEvents.push({
                             id: `${moment(group.date).format('YYYY-MM-DD')}-open`,
@@ -103,6 +105,9 @@ const CalendarPage = () => {
         fetchTickets();
     }, []);
 
+
+
+    // Function to update selected tickets based on date selection
     const updateSelectedTickets = (date, allTickets) => {
         const dateStr = moment(date).format('YYYY-MM-DD');
         const filtered = allTickets.filter(t => {
@@ -112,19 +117,21 @@ const CalendarPage = () => {
         setSelectedTickets(filtered);
     };
 
+    // Handle date slot selection to show tickets for that date
     const handleSelectSlot = (slotInfo) => {
         setSelectedDate(slotInfo.start);
         updateSelectedTickets(slotInfo.start, tickets);
     };
 
+    // Handle event selection to show tickets for that date
     const handleSelectEvent = (event) => {
         setSelectedDate(event.start);
-        // Use tickets from the aggregated event resource
         setSelectedTickets(event.resource.tickets);
     };
 
+    // Handle click on a ticket to navigate to its details page
     const handleTicketClick = (ticket) => {
-        const ticketId = ticket.id || ticket.issue_id || ticket.issue_key;
+        const ticketId = ticket.id;
         routerNavigate(`/tickets/${ticketId}`);
     };
 
@@ -136,12 +143,11 @@ const CalendarPage = () => {
             </div>
 
             <div className="flex-1 flex flex-col md:flex-row gap-6 min-h-0">
-                {/* Added min-h-0 to allow flex child to scroll if needed, though Calendar handles its own height usually */}
-
 
                 <div className="flex-1 bg-white dark:bg-gray-800 p-4 rounded-lg shadow" style={{ minHeight: '600px', display: 'flex', flexDirection: 'column' }}>
                     <div className="flex items-center justify-between mb-3">
 
+                        {/* navigate months buttons */}
                         <div className="text-m font-medium ">{moment(date).format(view === 'month' ? 'MMMM YYYY' : 'MMM D, YYYY')}</div>
                         <div className="flex gap-2">
                             <button className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded" onClick={() => navigate('PREV')}> ← </button>
@@ -150,6 +156,7 @@ const CalendarPage = () => {
                         </div>
                     </div>
 
+                    {/* Calendar component from react-big-calendar */}
                     <Calendar
                         localizer={localizer}
                         events={events}
@@ -182,10 +189,13 @@ const CalendarPage = () => {
                         {moment(selectedDate).format('MMMM Do, YYYY')}
                     </h3>
 
+                    {/* No tickets message */}
                     {selectedTickets.length === 0 ? (
                         <p className="text-gray-500 dark:text-gray-400">No tickets due on this day.</p>
                     ) : (
+
                         <div className="space-y-4">
+                            {/* List of tickets for the selected date */}
                             {selectedTickets.map(ticket => (
                                 <div
                                     key={ticket.issue_key}

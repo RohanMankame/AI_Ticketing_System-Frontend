@@ -73,7 +73,7 @@ const Tickets = () => {
 
     // Handle double-click on a row to navigate to ticket details page
     const onRowDoubleClicked = (params) => {
-        const ticketId = params.data.issue_key;
+        const ticketId = params.data.id;
         navigate(`/tickets/${ticketId}`);
     };
 

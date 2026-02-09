@@ -36,7 +36,7 @@ const TicketDetails = () => {
             const draft = await draftKnowledgeArticle([ticket.id]);
 
             setDraftData({
-                title: draft.title || `KB Article for Ticket #${ticket.issue_key}`,
+                title: draft.title || `Knowledge Base Article for Ticket #${ticket.issue_key}`,
                 content: draft.content || '',
                 type: 'solution',
                 tags: ticket.auto_tags || ''
@@ -80,10 +80,8 @@ const TicketDetails = () => {
                 const data = await getTicket(ticketId);
                 setTicket(data);
 
-                // Auto-analyze if no solution exists
+                // Auto-analyze if no solution exists, dont need to analyze if solution exists
                 if (data && !data.auto_solution) {
-                    // We don't await this to keep UI responsive, or we can use a separate state
-                    // Let's do it here
                     analyzeTicket(ticketId).then(analysis => {
                         setTicket(prev => ({
                             ...prev,
@@ -265,7 +263,7 @@ const TicketDetails = () => {
                     <button
                         onClick={handleFindSimilar}
                         disabled={searchingSimilar}
-                       className='text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-medium shadow-md '
+                        className='text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-medium shadow-md '
                     >
                         {searchingSimilar ? 'Searching...' : 'Find Similar'}
                     </button>
@@ -283,8 +281,7 @@ const TicketDetails = () => {
                                     <div className="font-semibold text-blue-600 dark:text-blue-400 group-hover:underline mb-1">
                                         {st.ticket.issue_key}: {st.ticket.summary}
                                     </div>
-                                    <span className={`text-xs text-white px-2 py-0.5 rounded-full ${st.ticket.status === 'Resolved' || st.ticket.status === 'Closed' ? 'bg-green-100 text-green-700' : 'bg-gray-600 text-gray-700'
-                                        }`}>
+                                    <span className={`text-xs text-white px-2 py-0.5 rounded-full bg-gray-600 text-gray-700`}>
                                         {st.ticket.status}
                                     </span>
                                 </div>
@@ -404,7 +401,7 @@ const TicketDetails = () => {
                                 disabled={savingDraft}
                                 className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-bold shadow-md hover:shadow-lg transform active:scale-95 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                             >
-                                {savingDraft ? 'Saving...' : '✅ Publish Article'}
+                                {savingDraft ? 'Saving...' : 'Publish Article'}
                             </button>
                         </div>
                     </div>

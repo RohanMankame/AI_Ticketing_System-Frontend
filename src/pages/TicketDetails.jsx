@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { getTicket, draftKnowledgeArticle, createKnowledgeArticle, analyzeTicket, getSimilarTickets } from '../services/api';
+import { getTicket, draftKnowledgeArticle, createKnowledgeArticle, analyzeTicket, getSimilarTickets, suggestSolution, getKnowledgeArticle } from '../services/api';
 
 const TicketDetails = () => {
     const { ticketId } = useParams();
@@ -18,6 +18,15 @@ const TicketDetails = () => {
     const [similarTickets, setSimilarTickets] = useState([]);
     const [searchingSimilar, setSearchingSimilar] = useState(false);
 
+    // Suggested Solutions State
+    const [suggestedSolutions, setSuggestedSolutions] = useState(null);
+    const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+
+    // Article Modal State
+    const [selectedArticle, setSelectedArticle] = useState(null);
+    const [showArticleModal, setShowArticleModal] = useState(false);
+    const [loadingArticle, setLoadingArticle] = useState(false);
+
     const handleFindSimilar = async () => {
         try {
             setSearchingSimilar(true);
@@ -28,6 +37,38 @@ const TicketDetails = () => {
         } finally {
             setSearchingSimilar(false);
         }
+    };
+
+    const handleFindSolutions = async () => {
+        try {
+            setLoadingSuggestions(true);
+            const suggestions = await suggestSolution(ticketId);
+            setSuggestedSolutions(suggestions);
+        } catch (error) {
+            console.error("Failed to fetch suggested solutions", error);
+        } finally {
+            setLoadingSuggestions(false);
+        }
+    };
+
+    const handleViewArticle = async (articleId) => {
+        try {
+            setLoadingArticle(true);
+            setShowArticleModal(true);
+            const article = await getKnowledgeArticle(articleId);
+            setSelectedArticle(article);
+        } catch (error) {
+            console.error("Failed to fetch article details", error);
+            alert("Failed to load article details.");
+            setShowArticleModal(false);
+        } finally {
+            setLoadingArticle(false);
+        }
+    };
+
+    const closeArticleModal = () => {
+        setShowArticleModal(false);
+        setSelectedArticle(null);
     };
 
     const onDraftClick = async () => {
@@ -305,6 +346,71 @@ const TicketDetails = () => {
                 )}
             </div>
 
+            {/* Relevant Knowledge Articles Section */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden mb-8 p-6">
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        Relevant Knowledge Articles
+                    </h3>
+                    <button
+                        onClick={handleFindSolutions}
+                        disabled={loadingSuggestions}
+                        className='text-white bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg font-medium shadow-md '
+                    >
+                        {loadingSuggestions ? 'Searching...' : 'Find Articles'}
+                    </button>
+                </div>
+
+                {suggestedSolutions ? (
+                    <div className="space-y-6">
+                        {/* Relevant Knowledge Articles */}
+                        {suggestedSolutions.relevant_knowledge && suggestedSolutions.relevant_knowledge.length > 0 ? (
+                            <div>
+                                <div className="space-y-3">
+                                    {suggestedSolutions.relevant_knowledge.map((item, index) => (
+                                        <div
+                                            key={item.article.id || index}
+                                            onClick={() => handleViewArticle(item.article.id)}
+                                            className="p-4 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all cursor-pointer group"
+                                        >
+                                            <div className="flex justify-between items-start mb-2">
+                                                <h5 className="font-semibold text-blue-600 dark:text-blue-400 group-hover:underline">
+                                                    {item.article.title}
+                                                </h5>
+                                                <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded-full">
+                                                    {Math.round(item.score * 100)}% match
+                                                </span>
+                                            </div>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 mb-2">
+                                                {item.article.content}
+                                            </p>
+                                            <div className="flex gap-2">
+                                                {item.article.tags && item.article.tags.map((tag, tagIdx) => (
+                                                    <span key={tagIdx} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 px-2 py-0.5 rounded">
+                                                        #{tag}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-center py-4 text-gray-500 italic">
+                                No relevant articles found.
+                            </div>
+                        )}
+
+                    </div>
+                ) : (
+                    loadingSuggestions ? (
+                        <div className="text-center py-8 text-gray-500">Searching knowledge base...</div>
+                    ) : (
+                        <div className="text-sm text-gray-400 italic">Click "Find Articles" to search for relevant knowledge base entries.</div>
+                    )
+                )}
+            </div>
+
             {/* AI Action Card - Draft Editor */}
             <div className={`rounded-xl shadow-lg border overflow-hidden transition-all duration-300 ${isDrafting ? 'bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-900' : 'bg-gray-50 dark:bg-gray-900/50 border-dashed border-gray-300 dark:border-gray-700'}`}>
                 {!isDrafting ? (
@@ -407,6 +513,89 @@ const TicketDetails = () => {
                     </div>
                 )}
             </div>
+
+            {/* Knowledge Article Modal */}
+            {showArticleModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col animate-fadeIn">
+                        {/* Modal Header */}
+                        <div className="flex justify-between items-start p-6 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+                            <div className="flex-1 pr-4">
+                                {loadingArticle ? (
+                                    <div className="h-6 w-3/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-2"></div>
+                                ) : (
+                                    <>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="text-xs font-bold px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 uppercase tracking-wide">
+                                                {selectedArticle?.type || 'Article'}
+                                            </span>
+                                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                ID: {selectedArticle?.id}
+                                            </span>
+                                        </div>
+                                        <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-snug">
+                                            {selectedArticle?.title}
+                                        </h2>
+                                    </>
+                                )}
+                            </div>
+                            <button
+                                onClick={closeArticleModal}
+                                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="p-6 overflow-y-auto custom-scrollbar">
+                            {loadingArticle ? (
+                                <div className="space-y-4">
+                                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full animate-pulse"></div>
+                                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6 animate-pulse"></div>
+                                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/6 animate-pulse"></div>
+                                    <div className="h-40 bg-gray-100 dark:bg-gray-800 rounded w-full animate-pulse mt-6"></div>
+                                </div>
+                            ) : (
+                                selectedArticle && (
+                                    <div className="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300">
+                                        <div className="whitespace-pre-wrap leading-relaxed">
+                                            {selectedArticle.content}
+                                        </div>
+
+                                        {selectedArticle.tags && (
+                                            <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-700">
+                                                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Tags</h4>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {(Array.isArray(selectedArticle.tags) ? selectedArticle.tags : (selectedArticle.tags || '').split(',')).map((tag, i) => (
+                                                        tag.trim() && (
+                                                            <span key={i} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-600 dark:text-gray-300">
+                                                                #{tag.trim()}
+                                                            </span>
+                                                        )
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )
+                            )}
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="p-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex justify-end">
+                            <button
+                                onClick={closeArticleModal}
+                                className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

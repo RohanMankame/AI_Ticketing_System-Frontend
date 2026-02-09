@@ -12,7 +12,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 
-
+// Custom theme configuration for AG Grid
 const myTheme = themeQuartz
     .withParams({
         backgroundColor: "#1f2836",
@@ -26,12 +26,14 @@ const myTheme = themeQuartz
         headerFontSize: 14
     });
 
+
 const Tickets = () => {
     const [tickets, setTickets] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
 
 
+    // Column definitions for AG Grid table
     const [colDefs] = useState([
         { field: 'issue_key', headerName: 'Issue Key', sortable: true, filter: true, width: 120 },
         { field: 'summary', headerName: 'Summary', sortable: true, filter: true, flex: 1 },
@@ -44,6 +46,7 @@ const Tickets = () => {
         }
     ]);
 
+    // Fetch tickets from backend API on component mount
     useEffect(() => {
         const fetchTickets = async () => {
             try {
@@ -68,14 +71,15 @@ const Tickets = () => {
 
     const navigate = useNavigate();
 
+    // Handle double-click on a row to navigate to ticket details page
     const onRowDoubleClicked = (params) => {
-        // Use ID for navigation
-        const ticketId = params.data.id || params.data.issue_id || params.data.issue_key;
+        const ticketId = params.data.issue_key;
         navigate(`/tickets/${ticketId}`);
     };
 
     const fileInputRef = useRef(null);
 
+    // Handle file upload for importing tickets from CSV
     const handleFileUpload = async (event) => {
         const file = event.target.files[0];
         if (!file) return;
@@ -132,6 +136,7 @@ const Tickets = () => {
                     </div>
                 </div>
             </div>
+            {/* AG Grid table containing all tickets */}
             <div className={myTheme.className} style={{ height: '600px', minHeight: '500px' }}>
                 <AgGridReact
                     rowData={tickets}

@@ -9,6 +9,8 @@ const api = axios.create({
   },
 });
 
+// Endpoints for API calls
+
 // Tickets
 export const getTickets = async () => {
   const response = await api.get('/tickets/');

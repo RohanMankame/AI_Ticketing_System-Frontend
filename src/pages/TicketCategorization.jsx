@@ -12,6 +12,7 @@ const TicketCategorization = () => {
     const [loadingTickets, setLoadingTickets] = useState(false);
     const [error, setError] = useState(null);
 
+    // Fetch available tags and their counts 
     useEffect(() => {
         const fetchTags = async () => {
             try {
@@ -41,7 +42,7 @@ const TicketCategorization = () => {
                 setTickets(data.tickets || []);
             } catch (err) {
                 console.error("Failed to fetch tickets for tag:", err);
-                setTickets([]); // Clear tickets on error or keep previous? Clearing seems safer to indicate state
+                setTickets([]); 
             } finally {
                 setLoadingTickets(false);
             }
@@ -50,6 +51,7 @@ const TicketCategorization = () => {
         fetchTickets();
     }, [selectedTag]);
 
+    // Show loading state while fetching tags
     if (loadingTags) {
         return (
             <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
@@ -58,6 +60,7 @@ const TicketCategorization = () => {
         );
     }
 
+    // Show error message if failed to load tags
     if (error) {
         return (
             <div className="p-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
@@ -68,6 +71,7 @@ const TicketCategorization = () => {
             </div>
         );
     }
+
 
     return (
         <div className="h-full space-y-8">
@@ -106,7 +110,7 @@ const TicketCategorization = () => {
                 </div>
             </div>
 
-            {/* Tickets List */}
+            {/* Tickets List matching selected tag */}
             <div className="space-y-4">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white capitalize">
                     Tickets tagged with "{selectedTag}"
@@ -152,7 +156,7 @@ const TicketCategorization = () => {
                                 {ticket.auto_solution && (
                                     <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800/50">
                                         <p className="text-sm text-blue-800 dark:text-blue-200 flex items-start gap-2">
-                                            <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                            <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
                                             <span><span className="font-semibold">Suggested Solution:</span> {ticket.auto_solution}</span>
                                         </p>
                                     </div>

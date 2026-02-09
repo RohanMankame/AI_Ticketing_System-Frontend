@@ -15,7 +15,7 @@ const Dashboard = () => {
             try {
                 const tickets = await getTickets();
 
-                // Basic Stats
+                // ticket stats
                 const total = tickets.length;
                 const open = tickets.filter(t => !['done', 'resolved', 'closed'].includes(String(t.status || '').toLowerCase())).length;
                 const resolved = total - open;
@@ -42,7 +42,7 @@ const Dashboard = () => {
                     return acc;
                 }, {});
 
-                // Ensure consistent order if possible, or just map
+                // Convert to array format for BarChart
                 const pData = Object.keys(priorityCounts).map(key => ({
                     name: key,
                     count: priorityCounts[key]
@@ -57,8 +57,6 @@ const Dashboard = () => {
         };
         load();
     }, []);
-
-    const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
     if (loading) {
         return (
@@ -104,9 +102,10 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {/* Graphs Grid */}
+            {/* Charts for showing ticket statistics */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Status Distribution */}
+
+                {/* Pie Chart - Status Distribution */}
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Detailed Status Distribution</h3>
                     <div className="h-80">
@@ -157,29 +156,18 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* Priority Breakdown */}
+
+                {/* Bar Chart - Tickets by Priority */}
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Tickets by Priority</h3>
                     <div className="h-80">
                         <ResponsiveContainer width="100%" height="100%">
+                            
                             <BarChart
                                 data={priorityData}
                                 margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                             >
                                 <defs>
-                                    <linearGradient id="barGradientRed" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#ef4444" stopOpacity={0.9} />
-                                        <stop offset="100%" stopColor="#dc2626" stopOpacity={0.6} />
-                                    </linearGradient>
-                                    <linearGradient id="barGradientOrange" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.9} />
-                                        <stop offset="100%" stopColor="#d97706" stopOpacity={0.6} />
-                                    </linearGradient>
-                                    <linearGradient id="barGradientBlue" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.9} />
-                                        <stop offset="100%" stopColor="#1e40af" stopOpacity={0.6} />
-                                    </linearGradient>
-                                </defs><defs>
                                     <linearGradient id="barGradientPurple" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.9} />
                                         <stop offset="100%" stopColor="#6d28d9" stopOpacity={0.6} />
